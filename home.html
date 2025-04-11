@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Web Tài Xỉu</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: url("IMAGE/anh-nen-may-tinh-4k-chill_48991223469.jpg") no-repeat center center fixed;
+      background-size: cover;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.4);
+      color: white;
+    }
+    .box {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 30px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 10px;
+      border: none;
+    }
+    button {
+      padding: 12px 20px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      margin: 10px;
+    }
+    .back {
+      background: gray;
+      color: white;
+    }
+    .enter {
+      background: white;
+      color: black;
+      font-weight: bold;
+    }
+    a {
+      color: #00ffff;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="box">
+      <h2>ANH BẢO</h2>
+      <p>Telegram: <a href="https://t.me/anhbaocx" target="_blank">@anhbaocx</a></p>
+      <input type="text" id="link" placeholder="Link webgame" />
+      <input type="text" id="key" placeholder="Mã key" />
+      <div>
+        <button class="back" onclick="window.location.href='index.html'">QUAY LẠI</button>
+        <button class="enter">XÂM NHẬP</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.querySelector(".enter").onclick = function () {
+      const link = document.getElementById("link").value.trim();
+      const key = document.getElementById("key").value.trim();
+      const correctKey = "anhbao8386";
+
+      if (!link || !key) return alert("❗ Vui lòng nhập đầy đủ link và mã key!");
+
+      if (key === correctKey) {
+        localStorage.setItem("gameLink", link);
+        alert("✅ Xác thực thành công! Đang chuyển tới trang game...");
+        window.location.href = "bot.html";
+      } else {
+        alert("❌ Sai mã key! Vui lòng nhập lại.");
+      }
+    };
+  </script>
+</body>
+</html>
