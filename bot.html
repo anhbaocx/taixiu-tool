@@ -1,159 +1,191 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>Bot Tài Xỉu</title>
+  <meta charset="UTF-8" />
+  <title>Bot Tài Xỉu - Anh Bảo</title>
   <style>
     body, html {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
-      background: black;
+      margin: 0; padding: 0; height: 100%;
+      overflow: hidden; background: black;
+      font-family: Arial, sans-serif;
     }
-
     #gameFrame {
-      width: 100%;
-      height: 100%;
-      border: none;
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 1;
+      width: 100%; height: 100%;
+      position: absolute; top: 0; left: 0;
+      border: none; z-index: 1;
     }
-
     #startButton {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 10px 20px;
-      font-size: 16px;
-      background-color: red;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      z-index: 9999;
+      position: fixed; top: 20px; right: 20px;
+      padding: 10px 20px; font-size: 16px;
+      background-color: red; color: white;
+      border: none; border-radius: 8px;
+      cursor: pointer; z-index: 9999;
     }
-
-    /* Hộp kết quả Tài Xỉu */
     #resultOverlay {
-      position: absolute;
-      top: 80px;
-      left: 20px;
-      z-index: 9999;
-      cursor: move;
+      position: absolute; top: 80px; left: 20px;
+      z-index: 9999; display: none; cursor: move;
     }
-
     #taixiu-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: #444;
-      border-radius: 20px;
+      display: flex; flex-direction: column; align-items: center;
+      background: #444; border-radius: 20px;
       padding: 10px 15px;
       box-shadow: 0 0 10px rgba(0,0,0,0.6);
-      color: white;
-      font-family: 'Segoe UI', sans-serif;
-      font-weight: bold;
-      text-shadow: 1px 1px 2px black;
+      color: white; font-weight: bold;
     }
-
     .row {
-      display: flex;
-      align-items: center;
+      display: flex; align-items: center;
       justify-content: center;
-      gap: 10px;
+      gap: 20px;
     }
-
     .circle {
-      display: inline-block;
       padding: 8px 14px;
       border-radius: 999px;
-      font-size: 16px;
-      text-align: center;
+      font-size: 18px;
     }
-
     #dice {
-      font-size: 24px;
+      font-size: 36px;
+      margin-bottom: 4px;
     }
-
-    .green {
-      background-color: green;
-      animation: flashGreen 1s infinite;
-    }
-
-    .red {
-      background-color: red;
-      animation: flashRed 1s infinite;
-    }
-
-    @keyframes flashGreen {
-      0% { background-color: green; }
-      50% { background-color: lime; }
-      100% { background-color: green; }
-    }
-
-    @keyframes flashRed {
-      0% { background-color: red; }
-      50% { background-color: rgb(255, 157, 121); }
-      100% { background-color: red; }
-    }
-
-    #toolName {
+    .indicator {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2px solid white;
       margin-top: 5px;
-      font-size: 12px;
+      background-color: gray;
+    }
+    .blink-green {
+      animation: blinkGreen 1s infinite;
+    }
+    .blink-red {
+      animation: blinkRed 1s infinite;
+    }
+    @keyframes blinkGreen {
+      0%, 100% { background-color: lime; }
+      50% { background-color: white; }
+    }
+    @keyframes blinkRed {
+      0%, 100% { background-color: red; }
+      50% { background-color: white; }
+    }
+    #toolName {
+      margin-top: 5px; font-size: 14px;
     }
   </style>
 </head>
 <body>
-
   <iframe id="gameFrame"></iframe>
-
   <button id="startButton">Bắt đầu</button>
 
   <div id="resultOverlay" draggable="true">
     <div id="taixiu-box">
       <div class="row">
-        <span id="tai" class="circle green">Tài</span>
-        <span id="dice">🎲</span>
-        <span id="xiu" class="circle red">Xỉu</span>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+          <div id="tai" class="circle">Tài</div>
+          <div id="indicator-tai" class="indicator"></div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+          <div id="dice">🎲</div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+          <div id="xiu" class="circle">Xỉu</div>
+          <div id="indicator-xiu" class="indicator"></div>
+        </div>
       </div>
       <div id="toolName">ToolBy Anh Bảo</div>
     </div>
   </div>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBhkIlS7sJlVbZ6A9ZKMeYiH5ZyDJbmY1w",
+        authDomain: "taixiu-official.firebaseapp.com",
+        databaseURL: "https://taixiu-official-default-rtdb.firebaseio.com",
+        projectId: "taixiu-official",
+        storageBucket: "taixiu-official.appspot.com",
+        messagingSenderId: "460194169578",
+        appId: "1:460194169578:web:6e3f61725cb0d7c88d8d93",
+        measurementId: "G-KH4NVKC9C4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
     const gameLink = localStorage.getItem("gameLink");
-    if (gameLink) {
-      document.getElementById("gameFrame").src = gameLink;
-    }
+    if (gameLink) document.getElementById("gameFrame").src = gameLink;
 
-    document.getElementById("startButton").addEventListener("click", () => {
-      alert("Đang xử lý dữ liệu và dự đoán... (chức năng đang phát triển)");
-    });
-
-    let drag = false;
-    let offsetX, offsetY;
     const overlay = document.getElementById("resultOverlay");
+    const taiDot = document.getElementById("indicator-tai");
+    const xiuDot = document.getElementById("indicator-xiu");
+    const dice = document.getElementById("dice");
 
+    // Kéo hộp đèn
+    let drag = false, offsetX, offsetY;
     overlay.addEventListener("mousedown", (e) => {
       drag = true;
-      offsetX = e.offsetX;
-      offsetY = e.offsetY;
+      offsetX = e.offsetX; offsetY = e.offsetY;
     });
-
     document.addEventListener("mousemove", (e) => {
       if (drag) {
         overlay.style.left = (e.pageX - offsetX) + "px";
         overlay.style.top = (e.pageY - offsetY) + "px";
       }
     });
+    document.addEventListener("mouseup", () => drag = false);
 
-    document.addEventListener("mouseup", () => {
-      drag = false;
-    });
+    let history = [];
+
+    function checkOneToOne(history) {
+      const count = {};
+      for (let i = 0; i < history.length - 1; i++) {
+        const key = `${history[i]}→${history[i + 1]}`;
+        count[key] = (count[key] || 0) + 1;
+      }
+      return count;
+    }
+
+    function predictFromPattern(history, patternMap) {
+      const last = history[history.length - 1];
+      const tai = patternMap[`${last}→Tài`] || 0;
+      const xiu = patternMap[`${last}→Xỉu`] || 0;
+      if (tai > xiu) return "Tài";
+      if (xiu > tai) return "Xỉu";
+      return null;
+    }
+
+    document.getElementById("startButton").onclick = () => {
+      overlay.style.display = "block";
+
+      const dataRef = ref(db, "taixiu/");
+      onChildAdded(dataRef, (snapshot) => {
+        const val = snapshot.val();
+        if (!val || typeof val.data !== 'string') return;
+
+        const match = val.data.match(/\{(\d+)-(\d+)-(\d+)\}/);
+        if (!match) return;
+
+        const [_, a, b, c] = match.map(Number);
+        const sum = a + b + c;
+        const result = sum >= 11 ? "Tài" : "Xỉu";
+
+        // Hiển thị kết quả xúc xắc
+        dice.textContent = `🎲 ${a}-${b}-${c}`;
+
+        // Lưu lịch sử và dự đoán
+        history.push(result);
+        if (history.length > 50) history.shift();
+
+        const patternMap = checkOneToOne(history);
+        const predict = predictFromPattern(history, patternMap);
+
+        taiDot.className = "indicator";
+        xiuDot.className = "indicator";
+        if (predict === "Tài") taiDot.classList.add("blink-green");
+        if (predict === "Xỉu") xiuDot.classList.add("blink-red");
+      });
+    };
   </script>
-
 </body>
 </html>
