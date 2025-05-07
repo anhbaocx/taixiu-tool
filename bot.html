@@ -101,13 +101,13 @@
 
     const firebaseConfig = {
       apiKey: "AIzaSyBhkIlS7sJlVbZ6A9ZKMeYiH5ZyDJbmY1w",
-        authDomain: "taixiu-official.firebaseapp.com",
-        databaseURL: "https://taixiu-official-default-rtdb.firebaseio.com",
-        projectId: "taixiu-official",
-        storageBucket: "taixiu-official.appspot.com",
-        messagingSenderId: "460194169578",
-        appId: "1:460194169578:web:6e3f61725cb0d7c88d8d93",
-        measurementId: "G-KH4NVKC9C4"
+      authDomain: "taixiu-official.firebaseapp.com",
+      databaseURL: "https://taixiu-official-default-rtdb.firebaseio.com",
+      projectId: "taixiu-official",
+      storageBucket: "taixiu-official.appspot.com",
+      messagingSenderId: "460194169578",
+      appId: "1:460194169578:web:6e3f61725cb0d7c88d8d93",
+      measurementId: "G-KH4NVKC9C4"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -121,7 +121,6 @@
     const xiuDot = document.getElementById("indicator-xiu");
     const dice = document.getElementById("dice");
 
-    // Kéo hộp đèn
     let drag = false, offsetX, offsetY;
     overlay.addEventListener("mousedown", (e) => {
       drag = true;
@@ -136,6 +135,7 @@
     document.addEventListener("mouseup", () => drag = false);
 
     let history = [];
+    let lastProcessedTime = 0;
 
     function checkOneToOne(history) {
       const count = {};
@@ -155,11 +155,27 @@
       return null;
     }
 
+    function showPrediction(predict) {
+      taiDot.className = "indicator";
+      xiuDot.className = "indicator";
+
+      if (predict === "Tài") taiDot.classList.add("blink-green");
+      if (predict === "Xỉu") xiuDot.classList.add("blink-red");
+
+      setTimeout(() => {
+        taiDot.className = "indicator";
+        xiuDot.className = "indicator";
+      }, 15000); // 15 giây
+    }
+
     document.getElementById("startButton").onclick = () => {
       overlay.style.display = "block";
 
       const dataRef = ref(db, "taixiu/");
       onChildAdded(dataRef, (snapshot) => {
+        const now = Date.now();
+        if (now - lastProcessedTime < 50000) return; // 50 giây
+
         const val = snapshot.val();
         if (!val || typeof val.data !== 'string') return;
 
@@ -170,20 +186,18 @@
         const sum = a + b + c;
         const result = sum >= 11 ? "Tài" : "Xỉu";
 
-        // Hiển thị kết quả xúc xắc
         dice.textContent = `🎲 ${a}-${b}-${c}`;
 
-        // Lưu lịch sử và dự đoán
         history.push(result);
         if (history.length > 50) history.shift();
 
         const patternMap = checkOneToOne(history);
         const predict = predictFromPattern(history, patternMap);
 
-        taiDot.className = "indicator";
-        xiuDot.className = "indicator";
-        if (predict === "Tài") taiDot.classList.add("blink-green");
-        if (predict === "Xỉu") xiuDot.classList.add("blink-red");
+        if (predict) {
+          lastProcessedTime = now;
+          showPrediction(predict);
+        }
       });
     };
   </script>
