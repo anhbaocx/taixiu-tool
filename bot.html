@@ -165,7 +165,7 @@
       setTimeout(() => {
         taiDot.className = "indicator";
         xiuDot.className = "indicator";
-      }, 50000); // 15 giây
+      }, 15000); // 15 giây
     }
 
     document.getElementById("startButton").onclick = () => {
@@ -174,7 +174,7 @@
       const dataRef = ref(db, "taixiu/");
       onChildAdded(dataRef, (snapshot) => {
         const now = Date.now();
-        if (now - lastProcessedTime < 15000) return; // 50 giây
+        if (now - lastProcessedTime < 50000) return; // 50 giây
 
         const val = snapshot.val();
         if (!val || typeof val.data !== 'string') return;
